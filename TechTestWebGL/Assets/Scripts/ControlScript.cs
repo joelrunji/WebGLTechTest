@@ -829,6 +829,8 @@ namespace TechnicalTest
                 SetPartXRay(receiverMeshRenderers, !trackXRayChoice, 2);
                 SetPartXRay(sightMeshRenderers, !trackXRayChoice, 3);
                 SetPartXRay(stockMeshRenderers, !trackXRayChoice, 4);
+                trackXRayMode = false;
+                trackXRayTransparentMode = false;
             }
             ResetDefaultColorsOnPartSelection(false);
         }
