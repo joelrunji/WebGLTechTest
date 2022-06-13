@@ -9,7 +9,7 @@ namespace TechnicalTest
     public class ControlScript : MonoBehaviour
     {
         public GameObject gunPrefab;
-        public GameObject partLabel;
+        public GameObject partLabel; 
         public Camera camera1;
         public Material magazineMaterial;
         public Material receiverMaterial;
@@ -18,6 +18,8 @@ namespace TechnicalTest
         public Material tempOriginalMat;
         public Material tempSelectOrigMat;
         public Material xRayMat;
+        public Material xRayMatTransparent;
+        public Material xRayMatChoice;
         public GameObject magazineObject { get; private set; }
         public Renderer[] magazineMeshRenderers { get; private set; }
         public Renderer[] receiverMeshRenderers { get; private set; }
@@ -83,6 +85,8 @@ namespace TechnicalTest
         private bool trackPartRelease;
         private bool trackPartMove;
         private bool trackXRayMode;
+        private bool trackXRayTransparentMode;
+        private bool trackXRayChoice;
         //private List<Vector3> initialPartPos;
         private Dictionary<GameObject, Vector3> partPositions;
 
@@ -194,10 +198,12 @@ namespace TechnicalTest
             defaultStockMaterial = stockMaterial;
             //rayHitPoint = new Vector3(0, 0, 0);
             trackXRayMode = false;
+            trackXRayTransparentMode = false;
+            trackXRayChoice = false;
             //ExtremeRightVal(magazineRenderers);   
             //selectPartMeshPositions = magazineObj.GetComponentsInChildren<>().;
             //Material properties
-            
+
         }
 
         // Update is called once per frame
@@ -348,6 +354,8 @@ namespace TechnicalTest
             }
         }
         //*/
+
+        //Tracks highlighting of the object
         IEnumerator HighlightMonitor()
         {
             for(; ; )
@@ -424,6 +432,7 @@ namespace TechnicalTest
             }            
         }
         
+        //Applies a selected material to the mesh renderer
         void MaterialApplication(Material material, Renderer[] renderers)
         {
             foreach (var renderer in renderers)
@@ -432,6 +441,7 @@ namespace TechnicalTest
             }
         }
 
+        // Adds rigid components to parts
         void MakeRigid(Renderer[] renderers)
         {
             foreach (var item in renderers)
@@ -440,17 +450,20 @@ namespace TechnicalTest
             }
         }
 
+        // Box colliders work both in the Editor and WebGL, mesh colliders work only in the Editor
         void AddColliders(Renderer[] renderers)
         {
             foreach (var item in renderers)
             {
-                tempCollider = item.gameObject.AddComponent<MeshCollider>();
-                tempCollider.convex = true;
-                tempCollider.isTrigger = true;
-                //tempBoxCollider = item.gameObject.AddComponent<BoxCollider>();
+                //tempCollider = item.gameObject.AddComponent<MeshCollider>();
+                //tempCollider.convex = true;
+                //tempCollider.isTrigger = true;
+                tempBoxCollider = item.gameObject.AddComponent<BoxCollider>();
+                tempBoxCollider.isTrigger = true;
             }
         }
 
+        // Rotation done on the Update loop alternatively
         IEnumerator RotateModel()
         {
             for(; ; )
@@ -466,7 +479,7 @@ namespace TechnicalTest
             
         }
 
-        //Method for part selection
+        //Method to select a part 
         void PartSelect(Vector3 selectPos)
         {
             selectRay = camera1.ScreenPointToRay(selectPos);
@@ -474,7 +487,8 @@ namespace TechnicalTest
             {
                 tempSelectMat = raycastSelectHit.collider.gameObject.GetComponent<MeshRenderer>().sharedMaterial;
                 
-                if (!trackXRayMode)
+                //if (!trackXRayMode || !trackXRayTransparentMode)
+                if(!trackXRayChoice)
                 {
                     //check whether the part is already selected
                     if (tempOriginalMat.color != selectColor)
@@ -552,11 +566,13 @@ namespace TechnicalTest
                     //*/
                     //rayHitPoint = raycastSelectHit.transform.position;
                 }
+                //else if(trackXRayMode || trackXRayTransparentMode)
                 else
                 {
                     selectXRayPartObj = raycastSelectHit.collider.gameObject;
 
-                    if (tempSelectMat == xRayMat)
+                    if (/*tempSelectMat == xRayMat*/tempSelectMat == xRayMatChoice)
+                    //if (tempSelectMat == xRayMat || tempSelectMat == xRayMatTransparent)
                     {
                         //ResetIndividualPart2Xray();
                         if(meshNotXRay != null)
@@ -610,7 +626,8 @@ namespace TechnicalTest
 
                 trackPartSelect = false;
                 //*/
-                if (!trackXRayMode)
+                //if (!trackXRayMode || !trackXRayTransparentMode)
+                if (!trackXRayChoice)
                 {
                     ResetDefaultColorsOnPartSelection(false);
                 }
@@ -627,6 +644,7 @@ namespace TechnicalTest
             }
         }
 
+        //Resets the parts to their default colors
         void ResetDefaultColorsOnPartSelection(bool partHit)
         {
             if (magazineMaterial.color == selectColor)
@@ -646,6 +664,7 @@ namespace TechnicalTest
             }
         }
 
+        //Resets a part to its default position and rotation or pose
         void ResetPartOriginalPositionRotation()
         {
             foreach (var partObj in partPositions)
@@ -654,7 +673,8 @@ namespace TechnicalTest
                 partObj.Key.transform.rotation = spawnRot;
             }
         }
-                
+        
+        //Retrieve the extreme right position of a selected part
         void ExtremeRightVal(Renderer[] renderers)
         {
             /*
@@ -678,6 +698,7 @@ namespace TechnicalTest
             }
         }
 
+        // Set the floating part label to the right of the part based on the position of the colliders
         Vector3 ExtremeRightValMod(BoxCollider[] colliders)
         {
             selectPartBoxColliderPositions = new Vector3[colliders.Length];
@@ -693,7 +714,8 @@ namespace TechnicalTest
             //Debug.Log(maxXLocalPos.ElementAt(0));
             return camera1.WorldToScreenPoint(maxXLocalPos.ElementAt(0) + colliders[0].gameObject.transform.position);
         }
-
+        
+        //Sets the position of the floating label to the right of the selected part 
         void UpdatePartLabelPosition(Vector3 currentPartPosition)
         {
             /*
@@ -740,13 +762,15 @@ namespace TechnicalTest
             //partLabel.transform.position = selectPartLabelPosition + partLabelDisplacement;
         }
 
+        //Sets a part to the selected x-Ray mode and restores to default materials
         void SetPartXRay(Renderer[] renderers, bool state, int partNumber)
         {
             if (state)
             {
                 foreach (var item in renderers)
                 {
-                    item.sharedMaterial = xRayMat;
+                    //item.sharedMaterial = xRayMat;
+                    item.sharedMaterial = xRayMatChoice;
                 }
             }
             else
@@ -773,7 +797,7 @@ namespace TechnicalTest
                 }                
             }
         }
-
+        /*
         void ResetIndividualPart2Xray() 
         {
             if (magazineMaterial != xRayMat)
@@ -785,8 +809,8 @@ namespace TechnicalTest
             else if (stockMaterial != xRayMat)
                 stockMaterial = xRayMat;
         }
-
-        
+        //*/
+        //Add tags to renderers attached to a part
         void TagChildObjects(Renderer[] renderers, string tagName)
         {
             foreach (var item in renderers)
@@ -795,25 +819,42 @@ namespace TechnicalTest
             }
         }
 
+        //Reset the parts position, rotation, mesh and color
         public void ResetButton()
         {
             ResetPartOriginalPositionRotation();
+            if (trackXRayChoice)
+            {
+                SetPartXRay(magazineMeshRenderers, !trackXRayChoice, 1);
+                SetPartXRay(receiverMeshRenderers, !trackXRayChoice, 2);
+                SetPartXRay(sightMeshRenderers, !trackXRayChoice, 3);
+                SetPartXRay(stockMeshRenderers, !trackXRayChoice, 4);
+            }
             ResetDefaultColorsOnPartSelection(false);
         }
 
+        //Switch the XRay Mode on or off
         public void OnXRayClick()
-        {
+        {            
             trackXRayMode = !trackXRayMode;
+            xRayMatChoice = xRayMat;
             if (trackXRayMode)
             {
-                ResetDefaultColorsOnPartSelection(false);                
+                trackXRayTransparentMode = false;
+                ResetDefaultColorsOnPartSelection(false);
+                trackXRayChoice = true;
+            }
+            else
+            {
+                trackXRayChoice = false;
             }
             SetPartXRay(magazineMeshRenderers, trackXRayMode, 1);
             SetPartXRay(receiverMeshRenderers, trackXRayMode, 2);
             SetPartXRay(sightMeshRenderers, trackXRayMode, 3);
-            SetPartXRay(stockMeshRenderers, trackXRayMode, 4);
+            SetPartXRay(stockMeshRenderers, trackXRayMode, 4);            
         }
 
+        //Modify the color of a part when selected on the tree and restore to default if entire object is selected
         public void PartTreeSelected(int partNumber)
         {
 
@@ -859,7 +900,27 @@ namespace TechnicalTest
                         break;
                 }
             }
+        }
 
+        //Switch the transparent mode on or off
+        public void OnXRayTransparentClick()
+        {            
+            trackXRayTransparentMode = !trackXRayTransparentMode;
+            xRayMatChoice = xRayMatTransparent;
+            if (trackXRayTransparentMode)
+            {
+                trackXRayMode = false;
+                ResetDefaultColorsOnPartSelection(false);                
+                trackXRayChoice = true;
+            }
+            else
+            {
+                trackXRayChoice = false;
+            }
+            SetPartXRay(magazineMeshRenderers, trackXRayTransparentMode, 1);
+            SetPartXRay(receiverMeshRenderers, trackXRayTransparentMode, 2);
+            SetPartXRay(sightMeshRenderers, trackXRayTransparentMode, 3);
+            SetPartXRay(stockMeshRenderers, trackXRayTransparentMode, 4);
         }
 
         private void OnDestroy()

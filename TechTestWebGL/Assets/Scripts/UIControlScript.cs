@@ -218,6 +218,7 @@ namespace TechnicalTest
             }
         }
 
+        //Method to select the hit UI components and call the corresponding functions
         void ActivateOnHIt(Vector3 hitPos)
         {
             //Debug.Log(hitPos);
@@ -275,6 +276,7 @@ namespace TechnicalTest
             SetStateSelection(false, false, false, false, false);
         }
 
+        // Sets the state of the selected UI parts
         void SetStateSelection(bool allState, bool magazineState, bool receiverState, bool sightState, bool stockState)
         {
             selectAllParts = allState;
@@ -284,6 +286,9 @@ namespace TechnicalTest
             selectStockParts = stockState;
         }
 
+        //Method called when the UI component for all parts is selected
+        //Activates or deactivates the UI components for individual parts
+        //Sets the arrow direction
         void OnAllPartSelected()
         {
             if (!AllPartsArrowDownwardState)
@@ -300,6 +305,10 @@ namespace TechnicalTest
             }           
         }
 
+        //Method called when the UI component for Magazine part is selected        
+        //Sets the state of the magazine UI child components list on/off
+        //Adjusts the size of the scroll panel
+        //Sets the magazine UI component arrow direction
         void OnMagazinePartSelected()
         {            
             if (!MagazinePartsArrowDownwardState)
@@ -331,6 +340,10 @@ namespace TechnicalTest
             SetScrollHeight();
         }
 
+        //Method called when the UI component for Receiver part is selected        
+        //Sets the state of the receiver UI child components list on/off
+        //Adjusts the size of the scroll panel
+        //Sets the receiver UI component arrow direction
         void OnReceiverPartSelected()
         {
             if (!ReceiverPartsArrowDownwardState)
@@ -360,6 +373,10 @@ namespace TechnicalTest
             SetScrollHeight();
         }
 
+        //Method called when the UI component for Sight part is selected        
+        //Sets the state of the sight UI child components list on/off
+        //Adjusts the size of the scroll panel
+        //Sets the sight UI component arrow direction
         void OnSightPartSelected()
         {
             if (!SightPartsArrowDownwardState)
@@ -387,6 +404,10 @@ namespace TechnicalTest
             SetScrollHeight();
         }
 
+        //Method called when the UI component for Stock part is selected        
+        //Sets the state of the stock UI child components list on/off
+        //Adjusts the size of the scroll panel
+        //Sets the stock UI component arrow direction
         void OnStockPartSelected()
         {
             if (!StockPartsArrowDownwardState)
@@ -412,6 +433,7 @@ namespace TechnicalTest
             SetScrollHeight();
         }
 
+        // Returns the arrow object for each UI component
         GameObject GetArrowObject(GameObject parentObj, string arrowName)
         {
             arrowImages = parentObj.GetComponentsInChildren<Image>();
@@ -424,6 +446,7 @@ namespace TechnicalTest
             return null;
         }
 
+        //Sets arrow direction and position
         void ArrowRotateDownwardState(GameObject arrowObj, bool state)
         {
             if (state)
@@ -438,6 +461,7 @@ namespace TechnicalTest
             }
         }
 
+        //Activates or deactivates states of parts
         void PartActiveState(bool partState)
         {
             UIMagazinePartList.SetActive(partState);
@@ -446,6 +470,7 @@ namespace TechnicalTest
             UIStockPartList.SetActive(partState);
         }
 
+        //Initializes the child objects of UI parts
         void InitializeSpawnNameObjects(Renderer[] renderers, Vector3 parentPos, Transform parentTransform, int childRank)
         {
             int iterator = 1;
@@ -489,6 +514,8 @@ namespace TechnicalTest
             }
         }
         //*/
+
+        //Sets the active state of the spawned objects
         void SpawnedObjectsState(List<GameObject> gameObjects, bool objectState)
         {
             foreach (var item in gameObjects)
@@ -497,6 +524,7 @@ namespace TechnicalTest
             }            
         }
 
+        //Dynamically sets the height of the scroll panel
         void SetScrollHeight()
         {
             if (MagazinePartsArrowDownwardState)
@@ -532,6 +560,8 @@ namespace TechnicalTest
 
 
         }
+
+        //Method that sets the active state of the tree panel
         public void PanelDisplay()
         {
             panelSwitchState = !UIPanel.activeSelf;
