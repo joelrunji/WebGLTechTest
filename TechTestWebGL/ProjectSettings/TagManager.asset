@@ -3,7 +3,16 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - AllParts
+  - StockParts
+  - SightParts
+  - MagazineParts
+  - ReceiverParts
+  - MagazineFBXParts
+  - ReceiverFBXParts
+  - SightFBXParts
+  - StockFBXParts
   layers:
   - Default
   - TransparentFX
